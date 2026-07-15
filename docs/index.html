@@ -15,6 +15,7 @@
       --text: #e6edf3;
       --muted: #8b98a8;
       --amber: #f0b429;
+      --amber-soft: rgba(240, 180, 41, .12);
       --green: #3fb950;
       --red: #f85149;
       --mono: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
@@ -22,7 +23,7 @@
     }
 
     * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
+    html { scroll-behavior: auto; }
     body {
       margin: 0;
       background:
@@ -73,7 +74,38 @@
     .status { display: flex; align-items: center; gap: 9px; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .09em; }
     .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 12px rgba(63, 185, 80, .75); }
 
-    .hero { padding: clamp(72px, 11vw, 140px) 0 92px; }
+    .hero-wrap {
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      border-bottom: 1px solid var(--line);
+    }
+    .hero { position: relative; z-index: 1; padding: clamp(72px, 10vw, 128px) 0 94px; }
+    .hero-grid { display: grid; grid-template-columns: minmax(0, 1.04fr) minmax(390px, .96fr); gap: clamp(42px, 7vw, 90px); align-items: center; }
+    .radar {
+      position: absolute;
+      z-index: 0;
+      right: max(-15rem, -12vw);
+      top: 50%;
+      width: min(72vw, 880px);
+      aspect-ratio: 1;
+      border: 1px solid rgba(240, 180, 41, .09);
+      border-radius: 50%;
+      opacity: .36;
+      transform: translateY(-50%);
+      background:
+        linear-gradient(rgba(240, 180, 41, .08) 1px, transparent 1px) 50% / 100% 25%,
+        linear-gradient(90deg, rgba(240, 180, 41, .08) 1px, transparent 1px) 50% / 25% 100%,
+        repeating-radial-gradient(circle, transparent 0 17%, rgba(240, 180, 41, .09) 17.2% 17.5%, transparent 17.7% 34%);
+      pointer-events: none;
+    }
+    .radar::after {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      background: conic-gradient(from 30deg, transparent 0 77%, rgba(240, 180, 41, .02) 82%, rgba(240, 180, 41, .25) 99.4%, transparent 100%);
+    }
     .tagline { margin-bottom: 18px; color: var(--text); font: 700 clamp(21px, 3vw, 32px)/1.25 var(--mono); letter-spacing: -.03em; }
     .tagline q { color: var(--amber); quotes: '“' '”'; }
     .install-row { display: flex; align-items: stretch; gap: 14px; margin-top: 34px; flex-wrap: wrap; }
@@ -146,7 +178,46 @@
     a.proof-item { border-color: #5f512a; color: #f2cc60; transition: border-color .16s, background .16s; }
     a.proof-item:hover { border-color: var(--amber); background: rgba(240, 180, 41, .09); color: #ffe08a; }
 
-    section { padding: 92px 0; border-top: 1px solid var(--line); }
+    .terminal-window {
+      position: relative;
+      min-width: 0;
+      border: 1px solid #3a4654;
+      border-radius: 12px;
+      background: rgba(8, 12, 17, .94);
+      box-shadow: 0 26px 80px rgba(0, 0, 0, .36), inset 0 1px rgba(255, 255, 255, .035);
+      overflow: hidden;
+      font-family: var(--mono);
+    }
+    .terminal-bar { display: flex; align-items: center; gap: 7px; height: 42px; padding: 0 14px; border-bottom: 1px solid var(--line); background: #111821; }
+    .terminal-dot { width: 9px; height: 9px; border-radius: 50%; background: #394553; }
+    .terminal-dot:first-child { background: #6c3430; }
+    .terminal-dot:nth-child(2) { background: #6b5625; }
+    .terminal-dot:nth-child(3) { background: #285c35; }
+    .terminal-title { margin-left: auto; color: #657384; font: 10px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+    .terminal-body { min-height: 260px; padding: clamp(20px, 3vw, 28px); font: 13px/1.65 var(--mono); }
+    .terminal-command { min-height: 1.65em; margin: 0 0 15px; color: #d9e1e8; overflow-wrap: anywhere; }
+    .terminal-prompt { margin-right: 9px; color: var(--green); }
+    .terminal-cursor { display: inline-block; width: .62em; height: 1.05em; margin-left: 2px; background: var(--amber); vertical-align: -.16em; }
+    .terminal-output { margin: 0; color: var(--muted); }
+    .terminal-output strong { color: #c6d0da; font-weight: 500; }
+    .terminal-verdicts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; margin-top: 24px; }
+    .terminal-verdict {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 0;
+      padding: 8px 5px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      font: 700 clamp(8px, .9vw, 10px)/1 var(--mono);
+      letter-spacing: .02em;
+    }
+    .terminal-verdict.ok { color: #7ee787; border-color: #2f6f3d; background: #102819; }
+    .terminal-verdict.warn { color: #f6c85f; border-color: #775c20; background: #2a210e; }
+    .terminal-verdict.fail { color: #ff7b72; border-color: #873834; background: #301716; }
+
+    section { padding: clamp(76px, 8vw, 104px) 0; border-top: 1px solid var(--line); }
+    .hero-wrap + section { border-top: 0; }
     .section-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 480px); gap: 42px; align-items: end; margin-bottom: 38px; }
     .section-head p { margin-bottom: 4px; color: var(--muted); }
     .grid { display: grid; gap: 15px; }
@@ -164,9 +235,18 @@
     .card-kicker { margin-bottom: 30px; color: var(--red); font: 700 11px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; }
     .card h3 { max-width: 220px; }
 
-    .deliverables { grid-template-columns: 1.45fr 1fr 1fr; grid-template-rows: auto auto; }
-    .deliverable { min-height: 150px; padding: 24px; border: 1px solid var(--line); border-radius: 10px; background: rgba(19, 26, 34, .94); }
-    .deliverable.hero-feature { grid-row: span 2; padding: 30px; border-top: 3px solid var(--amber); background: linear-gradient(150deg, #1c2530, #111820); }
+    .deliverables { grid-template-columns: minmax(0, 1.45fr) minmax(280px, .8fr); grid-template-rows: repeat(3, minmax(150px, auto)); }
+    .deliverable {
+      min-width: 0;
+      min-height: 150px;
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: linear-gradient(145deg, rgba(22, 30, 40, .98), rgba(14, 20, 27, .98));
+      transition: border-color .18s, box-shadow .18s, transform .18s;
+    }
+    .deliverable:hover { transform: translateY(-2px); border-color: #766229; box-shadow: 0 0 26px rgba(240, 180, 41, .08); }
+    .deliverable.hero-feature { grid-row: 1 / span 3; padding: clamp(26px, 4vw, 40px); border-top: 3px solid var(--amber); background: linear-gradient(150deg, #1c2530, #10161e); }
     .deliverable .number { display: block; margin-bottom: 24px; color: var(--muted); font: 12px/1 var(--mono); }
     .deliverable h3 { color: var(--green); }
     .deliverable.hero-feature h3 { color: var(--amber); font-size: clamp(23px, 3vw, 34px); }
@@ -176,6 +256,17 @@
     .badge.ok { color: #7ee787; border-color: #2f6f3d; background: #102819; }
     .badge.warn { color: #f6c85f; border-color: #775c20; background: #2a210e; }
     .badge.fail { color: #ff7b72; border-color: #873834; background: #301716; }
+    .evidence-table { width: 100%; margin-top: 34px; border-collapse: separate; border-spacing: 0; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; font: 11px/1.4 var(--mono); }
+    .evidence-table th, .evidence-table td { padding: 12px 13px; border-bottom: 1px solid var(--line); text-align: left; }
+    .evidence-table th { background: #111820; color: #718092; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; }
+    .evidence-table tr:last-child td { border-bottom: 0; }
+    .evidence-table td:first-child { color: #c8d2dc; }
+    .evidence-table td:nth-child(2) { color: var(--muted); }
+    .evidence-table .badge { display: inline-block; white-space: nowrap; }
+    .deliverable-icon { float: right; width: 50px; height: 50px; margin: -4px 0 10px 16px; color: #6c7886; }
+    .token-bars { display: flex; align-items: end; gap: 5px; width: 74px; height: 42px; margin-top: 21px; }
+    .token-bars rect { fill: #44515f; }
+    .token-bars rect.hot { fill: var(--amber); }
 
     .steps { counter-reset: steps; grid-template-columns: repeat(3, 1fr); }
     .step { position: relative; padding: 28px 28px 25px 72px; border-top: 1px solid var(--line); }
@@ -203,6 +294,8 @@
     .footer-links a:hover { color: var(--text); }
 
     @media (max-width: 900px) {
+      .hero-grid { grid-template-columns: 1fr; }
+      .radar { right: -24rem; top: 36%; width: 850px; }
       .pain-grid { grid-template-columns: repeat(2, 1fr); }
       .deliverables { grid-template-columns: 1fr 1fr; }
       .deliverable.hero-feature { grid-column: 1 / -1; grid-row: auto; }
@@ -215,6 +308,8 @@
       .topbar { min-height: 62px; }
       .status span:last-child { display: none; }
       .hero { padding: 68px 0 72px; }
+      .hero-grid { gap: 38px; }
+      .radar { right: -31rem; }
       .tagline { font-size: 20px; }
       .install-row, .command-box, .actions, .button { width: 100%; }
       .install { font-size: 13px; }
@@ -223,8 +318,23 @@
       .section-head { grid-template-columns: 1fr; gap: 10px; margin-bottom: 28px; }
       .pain-grid, .deliverables { grid-template-columns: 1fr; }
       .deliverable.hero-feature { grid-column: auto; }
+      .terminal-body { min-height: 230px; padding: 19px; font-size: 11px; }
+      .terminal-verdicts { gap: 5px; }
+      .terminal-verdict { padding: 7px 3px; font-size: 7px; }
+      .evidence-table { display: block; overflow-x: auto; }
       .card { min-height: 145px; }
       .footer-inner { align-items: flex-start; flex-direction: column; }
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      html { scroll-behavior: smooth; }
+      .radar::after { animation: radar-sweep 16s linear infinite; }
+      .terminal-cursor { animation: terminal-cursor .8s steps(1) infinite; }
+      .terminal-window.is-running .terminal-output,
+      .terminal-window.is-running .terminal-verdict { opacity: 0; transform: translateY(5px); }
+      .terminal-window.is-running .terminal-output.is-visible,
+      .terminal-window.is-running .terminal-verdict.is-visible { opacity: 1; transform: translateY(0); transition: opacity .18s, transform .18s; }
+      @keyframes radar-sweep { to { transform: rotate(1turn); } }
+      @keyframes terminal-cursor { 50% { opacity: 0; } }
     }
   </style>
 </head>
@@ -235,28 +345,50 @@
   </header>
 
   <main id="top">
-    <section class="shell hero" aria-labelledby="hero-title">
-      <div class="eyebrow">Agent run telemetry</div>
-      <h1 id="hero-title">Flight Recorder</h1>
-      <p class="tagline">Your agent said <q>tests pass.</q> Get the receipts.</p>
-      <p class="lede">A flight recorder for AI coding agents — parses the session logs Codex already writes and turns an opaque run into a review-ready report.</p>
-      <div class="install-row">
-        <div class="command-box">
-          <code class="install"><span class="prompt" aria-hidden="true">$</span><span data-command>npm install -g flightrec</span></code>
-          <button class="copy-button" type="button" data-copy="npm install -g flightrec" aria-label="Copy npm install command">Copy</button>
+    <div class="hero-wrap">
+      <div class="radar" aria-hidden="true"></div>
+      <section class="shell hero" aria-labelledby="hero-title">
+        <div class="hero-grid">
+          <div>
+            <div class="eyebrow">Agent run telemetry</div>
+            <h1 id="hero-title">Flight Recorder</h1>
+            <p class="tagline">Your agent said <q>tests pass.</q> Get the receipts.</p>
+            <p class="lede">A flight recorder for AI coding agents — parses the session logs Codex already writes and turns an opaque run into a review-ready report.</p>
+          </div>
+          <div class="terminal-window" data-terminal aria-label="Example Flight Recorder terminal output">
+            <div class="terminal-bar" aria-hidden="true">
+              <span class="terminal-dot"></span><span class="terminal-dot"></span><span class="terminal-dot"></span>
+              <span class="terminal-title">local / flightrec</span>
+            </div>
+            <div class="terminal-body">
+              <p class="terminal-command"><span class="terminal-prompt" aria-hidden="true">$</span><span data-terminal-command>flightrec report latest --open</span><span class="terminal-cursor" aria-hidden="true"></span></p>
+              <p class="terminal-output is-visible" data-terminal-output>Report ready: <strong>54 claims / 1,400 commands / 0 parse errors</strong></p>
+              <div class="terminal-verdicts" aria-label="Example evidence verdicts">
+                <span class="terminal-verdict ok is-visible">SUPPORTED</span>
+                <span class="terminal-verdict warn is-visible">PARTIAL</span>
+                <span class="terminal-verdict fail is-visible">UNSUPPORTED</span>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="actions">
-          <a class="button" href="https://github.com/busminer/flightrec">GitHub <span aria-hidden="true">↗</span></a>
-          <a class="button primary" href="sample-report.html">See a live report <span aria-hidden="true">→</span></a>
+        <div class="install-row">
+          <div class="command-box">
+            <code class="install"><span class="prompt" aria-hidden="true">$</span><span data-command>npm install -g flightrec</span></code>
+            <button class="copy-button" type="button" data-copy="npm install -g flightrec" aria-label="Copy npm install command">Copy</button>
+          </div>
+          <div class="actions">
+            <a class="button" href="https://github.com/busminer/flightrec">GitHub <span aria-hidden="true">↗</span></a>
+            <a class="button primary" href="sample-report.html">See a live report <span aria-hidden="true">→</span></a>
+          </div>
         </div>
-      </div>
-      <div class="proof-strip" aria-label="Release facts">
-        <a class="proof-item" href="https://www.npmjs.com/package/flightrec">On npm: flightrec@0.9.0</a>
-        <span class="proof-item">29 green tests</span>
-        <span class="proof-item">MIT</span>
-        <span class="proof-item">Zero dependencies</span>
-      </div>
-    </section>
+        <div class="proof-strip" aria-label="Release facts">
+          <a class="proof-item" href="https://www.npmjs.com/package/flightrec">On npm: flightrec@0.9.0</a>
+          <span class="proof-item">29 green tests</span>
+          <span class="proof-item">MIT</span>
+          <span class="proof-item">Zero dependencies</span>
+        </div>
+      </section>
+    </div>
 
     <section aria-labelledby="tour-title">
       <div class="shell">
@@ -309,11 +441,23 @@
             <span class="number">01 / HERO SIGNAL</span>
             <h3>Claims vs Evidence</h3>
             <p>Matches what the agent claimed against the verification commands it actually ran and what they returned.</p>
-            <div class="verdicts" aria-label="Possible verdicts"><span class="badge ok">SUPPORTED</span><span class="badge warn">PARTIAL</span><span class="badge fail">UNSUPPORTED</span></div>
+            <table class="evidence-table" aria-label="Example claims and evidence verdicts">
+              <thead><tr><th>Agent claim</th><th>Evidence</th><th>Verdict</th></tr></thead>
+              <tbody>
+                <tr><td>Tests pass</td><td>node --test · 29/29</td><td><span class="badge ok">SUPPORTED</span></td></tr>
+                <tr><td>Build verified</td><td>Smoke command only</td><td><span class="badge warn">PARTIAL</span></td></tr>
+                <tr><td>Bug fixed</td><td>No matching run</td><td><span class="badge fail">UNSUPPORTED</span></td></tr>
+              </tbody>
+            </table>
           </article>
           <article class="deliverable"><span class="number">02</span><h3>Black Box Playback</h3><p>Every turn, command, exit code, output, and reply in order.</p></article>
-          <article class="deliverable"><span class="number">03</span><h3>Files Touched</h3><p>Write counts and churn flags point reviewers at risky files first.</p></article>
-          <article class="deliverable"><span class="number">04</span><h3>Token Burn</h3><p>Per-turn usage and cumulative cost reveal where the context went.</p></article>
+          <article class="deliverable"><span class="number">03</span><h3>Files touched / churn</h3><p>Write counts and churn flags point reviewers at risky files first.</p></article>
+          <article class="deliverable">
+            <span class="number">04</span><h3>Token Burn</h3><p>Per-turn usage and cumulative cost reveal where the context went.</p>
+            <svg class="token-bars" viewBox="0 0 74 42" role="img" aria-label="Example token usage bars">
+              <rect x="0" y="25" width="8" height="17" rx="2"/><rect x="13" y="18" width="8" height="24" rx="2"/><rect x="26" y="28" width="8" height="14" rx="2"/><rect x="39" y="8" width="8" height="34" rx="2"/><rect class="hot" x="52" y="0" width="8" height="42" rx="2"/><rect x="65" y="14" width="8" height="28" rx="2"/>
+            </svg>
+          </article>
         </div>
       </div>
     </section>
@@ -390,6 +534,41 @@
           }
         });
       });
+
+      const terminal = document.querySelector('[data-terminal]');
+      const motionAllowed = window.matchMedia('(prefers-reduced-motion: no-preference)').matches;
+      if (terminal && motionAllowed) {
+        const command = terminal.querySelector('[data-terminal-command]');
+        const output = terminal.querySelector('[data-terminal-output]');
+        const verdicts = [...terminal.querySelectorAll('.terminal-verdict')];
+        const commandText = 'flightrec report latest --open';
+        const wait = (milliseconds) => new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+
+        terminal.classList.add('is-running');
+        const runTerminal = async () => {
+          while (terminal.isConnected) {
+            command.textContent = '';
+            output.classList.remove('is-visible');
+            verdicts.forEach((verdict) => verdict.classList.remove('is-visible'));
+            await wait(700);
+
+            for (const character of commandText) {
+              command.textContent += character;
+              await wait(42);
+            }
+
+            await wait(420);
+            output.classList.add('is-visible');
+            await wait(620);
+            for (const verdict of verdicts) {
+              verdict.classList.add('is-visible');
+              await wait(520);
+            }
+            await wait(6200);
+          }
+        };
+        runTerminal();
+      }
     })();
   </script>
 </body>
