@@ -34,7 +34,9 @@
       color: var(--text);
       font: 16px/1.6 var(--sans);
     }
-    a { color: inherit; }
+    a { color: inherit; text-underline-offset: 3px; }
+    a:hover { color: #ffffff; }
+    button { color: inherit; }
     code { font-family: var(--mono); }
     .shell { width: min(1160px, calc(100% - 40px)); margin: 0 auto; }
     .eyebrow {
@@ -75,19 +77,43 @@
     .tagline { margin-bottom: 18px; color: var(--text); font: 700 clamp(21px, 3vw, 32px)/1.25 var(--mono); letter-spacing: -.03em; }
     .tagline q { color: var(--amber); quotes: '“' '”'; }
     .install-row { display: flex; align-items: stretch; gap: 14px; margin-top: 34px; flex-wrap: wrap; }
-    .install {
+    .command-box {
       display: flex;
-      align-items: center;
-      min-width: min(100%, 390px);
-      padding: 14px 18px;
+      align-items: stretch;
+      min-width: min(100%, 474px);
       border: 1px solid #455263;
       border-radius: 8px;
       background: #090d12;
       box-shadow: inset 0 1px rgba(255, 255, 255, .035);
+      overflow: hidden;
+    }
+    .install {
+      display: flex;
+      align-items: center;
+      flex: 1 1 auto;
+      min-width: 0;
+      padding: 14px 18px;
       overflow-x: auto;
+      white-space: nowrap;
       font: 15px/1.2 var(--mono);
     }
     .prompt { margin-right: 12px; color: var(--green); user-select: none; }
+    .copy-button {
+      flex: 0 0 auto;
+      min-width: 82px;
+      padding: 0 13px;
+      border: 0;
+      border-left: 1px solid var(--line);
+      background: #151d26;
+      color: #aeb9c5;
+      cursor: pointer;
+      font: 700 11px/1 var(--mono);
+      letter-spacing: .03em;
+      transition: color .16s, background .16s;
+    }
+    .copy-button:hover { background: #202b37; color: var(--text); }
+    .copy-button:focus-visible, .button:focus-visible, a:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+    .copy-button.copied { background: #102819; color: #7ee787; }
     .actions { display: flex; gap: 10px; flex-wrap: wrap; }
     .button {
       display: inline-flex;
@@ -106,6 +132,19 @@
     .button.primary { border-color: #8b6b20; background: var(--amber); color: #17130a; }
     .button.primary:hover { background: #ffc340; border-color: #ffc340; }
     .button span { margin-left: 10px; color: currentColor; opacity: .66; }
+
+    .proof-strip { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+    .proof-item {
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(19, 26, 34, .72);
+      color: #aeb9c5;
+      font: 700 11px/1 var(--mono);
+      text-decoration: none;
+    }
+    a.proof-item { border-color: #5f512a; color: #f2cc60; transition: border-color .16s, background .16s; }
+    a.proof-item:hover { border-color: var(--amber); background: rgba(240, 180, 41, .09); color: #ffe08a; }
 
     section { padding: 92px 0; border-top: 1px solid var(--line); }
     .section-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 480px); gap: 42px; align-items: end; margin-bottom: 38px; }
@@ -146,6 +185,15 @@
     .local-note { display: flex; align-items: center; gap: 12px; margin: 32px 0 0; color: #b8c3ce; font: 13px/1.5 var(--mono); }
     .local-note::before { content: ""; flex: 0 0 auto; width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px rgba(63, 185, 80, .65); }
 
+    .tour-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .tour-card { padding: 24px; border: 1px solid var(--line); border-radius: 10px; background: rgba(19, 26, 34, .94); }
+    .tour-card .command-box { width: 100%; min-width: 0; margin-bottom: 16px; }
+    .tour-card p { margin: 0; color: var(--muted); }
+
+    .field-tested { padding-top: 0; border-top: 0; }
+    .field-panel { padding: clamp(28px, 5vw, 52px); border: 1px solid #355d43; border-radius: 12px; background: linear-gradient(130deg, rgba(18, 55, 31, .38), rgba(19, 26, 34, .96) 58%); }
+    .field-panel p { max-width: 960px; margin: 16px 0 0; font: 600 clamp(19px, 2.5vw, 28px)/1.5 var(--mono); letter-spacing: -.025em; }
+
     .built { padding: 0 0 92px; border-top: 0; }
     .built-panel { position: relative; padding: clamp(28px, 5vw, 58px); border: 1px solid #6c5421; border-radius: 12px; background: linear-gradient(130deg, rgba(54, 43, 18, .46), rgba(19, 26, 34, .96) 58%); }
     .built-panel blockquote { max-width: 900px; margin: 17px 0 0; font: 600 clamp(20px, 3vw, 31px)/1.42 var(--mono); letter-spacing: -.025em; }
@@ -159,6 +207,7 @@
       .deliverables { grid-template-columns: 1fr 1fr; }
       .deliverable.hero-feature { grid-column: 1 / -1; grid-row: auto; }
       .steps { grid-template-columns: 1fr; }
+      .tour-grid { grid-template-columns: 1fr; }
       .step:not(:last-child)::after { content: "↓"; right: auto; left: 9px; top: auto; bottom: -21px; }
     }
     @media (max-width: 650px) {
@@ -167,7 +216,9 @@
       .status span:last-child { display: none; }
       .hero { padding: 68px 0 72px; }
       .tagline { font-size: 20px; }
-      .install-row, .install, .actions, .button { width: 100%; }
+      .install-row, .command-box, .actions, .button { width: 100%; }
+      .install { font-size: 13px; }
+      .copy-button { min-width: 76px; }
       section { padding: 70px 0; }
       .section-head { grid-template-columns: 1fr; gap: 10px; margin-bottom: 28px; }
       .pain-grid, .deliverables { grid-template-columns: 1fr; }
@@ -190,10 +241,44 @@
       <p class="tagline">Your agent said <q>tests pass.</q> Get the receipts.</p>
       <p class="lede">A flight recorder for AI coding agents — parses the session logs Codex already writes and turns an opaque run into a review-ready report.</p>
       <div class="install-row">
-        <code class="install"><span class="prompt" aria-hidden="true">$</span>npm install -g flightrec</code>
+        <div class="command-box">
+          <code class="install"><span class="prompt" aria-hidden="true">$</span><span data-command>npm install -g flightrec</span></code>
+          <button class="copy-button" type="button" data-copy="npm install -g flightrec" aria-label="Copy npm install command">Copy</button>
+        </div>
         <div class="actions">
           <a class="button" href="https://github.com/busminer/flightrec">GitHub <span aria-hidden="true">↗</span></a>
           <a class="button primary" href="sample-report.html">See a live report <span aria-hidden="true">→</span></a>
+        </div>
+      </div>
+      <div class="proof-strip" aria-label="Release facts">
+        <a class="proof-item" href="https://www.npmjs.com/package/flightrec">On npm: flightrec@0.9.0</a>
+        <span class="proof-item">29 green tests</span>
+        <span class="proof-item">MIT</span>
+        <span class="proof-item">Zero dependencies</span>
+      </div>
+    </section>
+
+    <section aria-labelledby="tour-title">
+      <div class="shell">
+        <div class="section-head">
+          <div><div class="eyebrow">Quick tour</div><h2 id="tour-title">Two commands. Full visibility.</h2></div>
+          <p>Find a session, then turn its raw rollout into a local cockpit report.</p>
+        </div>
+        <div class="grid tour-grid">
+          <article class="tour-card">
+            <div class="command-box">
+              <code class="install"><span class="prompt" aria-hidden="true">$</span><span data-command>flightrec list</span></code>
+              <button class="copy-button" type="button" data-copy="flightrec list" aria-label="Copy flightrec list command">Copy</button>
+            </div>
+            <p>Scan your local Codex sessions, newest first.</p>
+          </article>
+          <article class="tour-card">
+            <div class="command-box">
+              <code class="install"><span class="prompt" aria-hidden="true">$</span><span data-command>flightrec report latest --open</span></code>
+              <button class="copy-button" type="button" data-copy="flightrec report latest --open" aria-label="Copy flightrec report command">Copy</button>
+            </div>
+            <p>Generate the latest report and open it in your browser.</p>
+          </article>
         </div>
       </div>
     </section>
@@ -254,6 +339,13 @@
         <blockquote>Built with Codex on GPT-5.6 for OpenAI Build Week 2026 — and audited by itself: the first logs it ever analyzed were the sessions in which Codex was building it.</blockquote>
       </div>
     </section>
+
+    <section class="shell field-tested" aria-labelledby="field-title">
+      <div class="field-panel">
+        <div class="eyebrow" id="field-title">Field-tested</div>
+        <p>Stress-tested on a real 18-hour, 184-million-token Codex session — 1,400 commands parsed, 179 raw claims deduplicated into 54 verdicts. The first logs flightrec ever analyzed were the sessions in which Codex was building it.</p>
+      </div>
+    </section>
   </main>
 
   <footer>
@@ -262,5 +354,43 @@
       <div class="footer-links"><span>MIT</span><span>Alex Kosa</span><a href="https://github.com/busminer/flightrec">GitHub</a></div>
     </div>
   </footer>
+  <script>
+    (() => {
+      const fallbackCopy = (text) => {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.setAttribute('readonly', '');
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        const copied = document.execCommand('copy');
+        textarea.remove();
+        if (!copied) throw new Error('Copy failed');
+      };
+
+      document.querySelectorAll('[data-copy]').forEach((button) => {
+        button.addEventListener('click', async () => {
+          const text = button.dataset.copy;
+          try {
+            if (navigator.clipboard && window.isSecureContext) {
+              await navigator.clipboard.writeText(text);
+            } else {
+              fallbackCopy(text);
+            }
+            button.textContent = 'Copied ✓';
+            button.classList.add('copied');
+            window.setTimeout(() => {
+              button.textContent = 'Copy';
+              button.classList.remove('copied');
+            }, 1600);
+          } catch {
+            button.textContent = 'Copy failed';
+            window.setTimeout(() => { button.textContent = 'Copy'; }, 1600);
+          }
+        });
+      });
+    })();
+  </script>
 </body>
 </html>
