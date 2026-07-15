@@ -14,19 +14,26 @@ test('analyzeSession matches claims to real verification evidence and token usag
 
   const testClaim = analysis.claims.find((claim) => claim.claimType === 'tests_pass');
   assert.equal(testClaim.turnIndex, 1);
-  assert.equal(testClaim.sentence, 'Tests pass.');
+  assert.equal(testClaim.sentence, 'All tests passed.');
   assert.equal(testClaim.verdict, 'supported');
-  assert.equal(testClaim.evidenceCommands[0].command, 'node --test');
+  assert.equal(testClaim.evidenceCommands[0].command, 'node --test test/parser.test.js');
 
-  const doneClaim = analysis.claims.find((claim) => claim.claimType === 'done');
-  assert.equal(doneClaim.verdict, 'supported');
-  assert.equal(analysis.tokens.totalTokens, 2500);
-  assert.equal(analysis.tokens.cumulativeTotalTokens, 2500);
+  const doneClaim = analysis.claims.find((claim) => claim.turnIndex === 7 && claim.claimType === 'done');
+  assert.equal(doneClaim.verdict, 'unsupported');
+  assert.equal(analysis.tokens.totalTokens, 8200);
+  assert.equal(analysis.tokens.cumulativeTotalTokens, 8200);
   assert.deepEqual(analysis.tokens.perTurn, [
-    { turnIndex: 1, totalTokens: 1000, cumulativeTotalTokens: 1000 },
-    { turnIndex: 2, totalTokens: 1500, cumulativeTotalTokens: 2500 },
+    { turnIndex: 1, totalTokens: 1200, cumulativeTotalTokens: 1200 },
+    { turnIndex: 2, totalTokens: 2000, cumulativeTotalTokens: 3200 },
+    { turnIndex: 3, totalTokens: 1450, cumulativeTotalTokens: 4650 },
+    { turnIndex: 4, totalTokens: 1050, cumulativeTotalTokens: 5700 },
+    { turnIndex: 5, totalTokens: 820, cumulativeTotalTokens: 6520 },
+    { turnIndex: 6, totalTokens: 980, cumulativeTotalTokens: 7500 },
+    { turnIndex: 7, totalTokens: 700, cumulativeTotalTokens: 8200 },
   ]);
-  assert.deepEqual(analysis.summary.claims, { supported: 3, partial: 0, unsupported: 0 });
+  assert.deepEqual(analysis.summary.claims, { supported: 3, partial: 3, unsupported: 1 });
+  assert.equal(analysis.summary.failedCommands, 1);
+  assert.deepEqual(analysis.filesTouched['src/parser.js'], { writes: 3, turns: [1, 2, 3], churn: true });
 });
 
 test('analyzeSession reports unsupported claims and failed commands', () => {

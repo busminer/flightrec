@@ -11,22 +11,22 @@ test('parseSession normalizes metadata, turns, messages, commands, and tokens', 
   const session = await parseSession(fixture('rollout-2026-07-15T12-00-00-123e4567-e89b-12d3-a456-426614174000.jsonl'));
 
   assert.equal(session.meta.id, '123e4567-e89b-12d3-a456-426614174000');
-  assert.equal(session.meta.cwd, 'C:\\work\\healthy');
+  assert.equal(session.meta.cwd, 'C:\\work\\flightrec-demo');
   assert.equal(session.meta.originator, 'Codex Desktop');
-  assert.equal(session.meta.model, 'gpt-5');
-  assert.equal(session.meta.durationMs, 5 * 60 * 1000);
-  assert.equal(session.meta.approxTokens, 2500);
+  assert.equal(session.meta.model, 'gpt-5.6');
+  assert.equal(session.meta.durationMs, (2 * 60 * 60 + 21 * 60 + 10) * 1000);
+  assert.equal(session.meta.approxTokens, 8200);
   assert.equal(session.meta.isSubagent, false);
-  assert.equal(session.turns.length, 2);
-  assert.deepEqual(session.turns[0].userMessages, ['Run the tests.']);
-  assert.deepEqual(session.turns[0].agentMessages, ['Tests pass.']);
-  assert.deepEqual(session.turns[0].reasoning, ['I will run the synthetic test command.']);
-  assert.deepEqual(session.turns[0].commands[0].arguments, { command: 'node --test' });
-  assert.match(session.turns[0].commands[0].output, /pass 3/);
-  assert.equal(session.turns[0].commands[0].exitCode, 0);
-  assert.equal(session.turns[1].commands[0].type, 'custom_tool_call');
-  assert.equal(session.turns[1].commands[0].output, 'Done!');
-  assert.equal(session.turns[1].tokenUsage.cumulativeTotalTokens, 2500);
+  assert.equal(session.turns.length, 7);
+  assert.deepEqual(session.turns[0].userMessages, ['Add the session parser and prove it works.']);
+  assert.deepEqual(session.turns[0].agentMessages, ['Implemented the parser. All tests passed.']);
+  assert.deepEqual(session.turns[0].reasoning, ['I will implement the parser, then run the focused tests.']);
+  assert.equal(session.turns[0].commands[0].type, 'custom_tool_call');
+  assert.deepEqual(session.turns[0].commands[1].arguments, { command: 'node --test test/parser.test.js' });
+  assert.match(session.turns[0].commands[1].output, /pass 4/);
+  assert.equal(session.turns[0].commands[1].exitCode, 0);
+  assert.equal(session.turns[1].commands[1].exitCode, 1);
+  assert.equal(session.turns[6].tokenUsage.cumulativeTotalTokens, 8200);
   assert.equal(session.stats.skippedLines, 0);
 });
 
