@@ -208,9 +208,7 @@ function extractWrittenPaths(command) {
 }
 
 function looksLikePath(value) {
-  return /\p{L}/u.test(value)
-    || /[\\/]/.test(value)
-    || /\.[^.\s\\/]+$/.test(value);
+  return /[.\\/]/.test(value) && !/[)};,]$/.test(value);
 }
 
 function commandText(command) {
@@ -239,7 +237,7 @@ function shellTokens(command) {
 }
 
 function cleanPath(value) {
-  return String(value || '').trim().replace(/^(["'])|(["'])$/g, '').replace(/[;,]$/, '');
+  return String(value || '').trim().replace(/^(["'])|(["'])$/g, '');
 }
 
 function analyzeTokens(turns) {

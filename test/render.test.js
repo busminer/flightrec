@@ -1,0 +1,56 @@
+'use strict';
+
+const assert = require('node:assert/strict');
+const test = require('node:test');
+const { renderReport } = require('../src/render');
+
+test('renderReport contains all five report sections and escapes user data', () => {
+  const injection = '<script>alert("owned")</script>';
+  const session = {
+    meta: {
+      id: '123e4567-e89b-12d3-a456-426614174000',
+      timestamp: '2026-07-15T12:00:00.000Z',
+      startTime: '2026-07-15T12:00:00.000Z',
+      durationMs: 65_000,
+      cwd: `C:\\work\\${injection}`,
+      model: 'gpt-5',
+      originator: injection,
+    },
+    turns: [{
+      index: 1,
+      timestamp: '2026-07-15T12:00:01.000Z',
+      userMessages: [`Please inspect ${injection}`],
+      reasoning: [injection],
+      commands: [{ arguments: { command: `echo ${injection}` }, exitCode: 0, output: injection }],
+      agentMessages: [`Done. ${injection}`],
+    }],
+  };
+  const analysis = {
+    claims: [{ turnIndex: 1, sentence: `Done. ${injection}`, claimType: 'done', verdict: 'supported', evidenceCommands: [{ command: `node --test ${injection}`, exitCode: 0, output: injection }] }],
+    filesTouched: { [`src/${injection}.js`]: { writes: 3, turns: [1], churn: true } },
+    tokens: { perTurn: [{ turnIndex: 1, totalTokens: 120, cumulativeTotalTokens: 120 }], totalTokens: 120, cumulativeTotalTokens: 120 },
+    summary: { turns: 1, commands: 1, failedCommands: 0, claims: { supported: 1, partial: 0, unsupported: 0 }, churnedFiles: 1 },
+  };
+
+  const html = renderReport(session, analysis);
+
+  for (const section of ['header', 'claims-vs-evidence', 'timeline', 'files-touched', 'token-burn']) {
+    assert.match(html, new RegExp(`data-section="${section}"`));
+  }
+  assert.ok(html.indexOf('data-section="claims-vs-evidence"') < html.indexOf('data-section="timeline"'));
+  assert.doesNotMatch(html, /<script>alert\("owned"\)<\/script>/);
+  assert.match(html, /&lt;script&gt;alert\(&quot;owned&quot;\)&lt;\/script&gt;/);
+  assert.match(html, /<svg[^>]+aria-label="Per-turn and cumulative token usage"/);
+  assert.match(html, /CHURN · REVIEW/);
+});
+
+test('renderReport truncates command output after thirty lines', () => {
+  const output = Array.from({ length: 35 }, (_, index) => `line ${index + 1}`).join('\n');
+  const html = renderReport({ meta: {}, turns: [{ index: 1, userMessages: [], reasoning: [], commands: [{ arguments: 'run', exitCode: 1, output }], agentMessages: [] }] }, {
+    claims: [], filesTouched: {}, tokens: { perTurn: [] }, summary: { claims: {} },
+  });
+
+  assert.match(html, /line 30/);
+  assert.doesNotMatch(html, /line 31/);
+  assert.match(html, /Output truncated · 5 more lines/);
+});

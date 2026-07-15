@@ -1,6 +1,8 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const fs = require('node:fs/promises');
+const os = require('node:os');
 const path = require('node:path');
 const test = require('node:test');
 const { formatSessionList, main } = require('../bin/flightrec');
@@ -42,4 +44,39 @@ test('list hides subagents by default and --all includes them', async () => {
   });
   assert.equal(allCode, 0);
   assert.match(allLines[0], /323e4567/);
+});
+
+test('report resolves latest and writes a self-contained report to the current directory', async (t) => {
+  const outputDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'flightrec-report-latest-'));
+  t.after(() => fs.rm(outputDirectory, { recursive: true, force: true }));
+  const lines = [];
+
+  const code = await main(['report', 'latest', '--dir', fixtures], {
+    log: (value) => lines.push(value),
+    error: (value) => lines.push(value),
+  }, { cwd: () => outputDirectory });
+
+  const expected = path.join(outputDirectory, 'flightrec-report-123e4567.html');
+  assert.equal(code, 0);
+  assert.equal(lines[0], expected);
+  const html = await fs.readFile(expected, 'utf8');
+  assert.match(html, /123e4567-e89b-12d3-a456-426614174000/);
+  assert.match(html, /<!doctype html>/);
+});
+
+test('report resolves an id prefix to the matching session', async (t) => {
+  const outputDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'flightrec-report-prefix-'));
+  t.after(() => fs.rm(outputDirectory, { recursive: true, force: true }));
+  const lines = [];
+
+  const code = await main(['report', '223e4567', '--dir', fixtures], {
+    log: (value) => lines.push(value),
+    error: (value) => lines.push(value),
+  }, { cwd: () => outputDirectory });
+
+  const expected = path.join(outputDirectory, 'flightrec-report-223e4567.html');
+  assert.equal(code, 0);
+  assert.equal(lines[0], expected);
+  const html = await fs.readFile(expected, 'utf8');
+  assert.match(html, /223e4567-e89b-12d3-a456-426614174001/);
 });

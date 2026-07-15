@@ -99,6 +99,26 @@ test('redirect detection ignores numeric comparisons embedded in scripts', () =>
   assert.equal(analysis.filesTouched['1'], undefined);
 });
 
+test('written path candidates require path punctuation and reject script fragments', () => {
+  const analysis = analyzeSession({ turns: [turn(1, {
+    commands: [{
+      name: 'shell',
+      arguments: {
+        command: 'node -e "if (ready > end) { path > end.js); value > result}; next > item; more > thing, }" > report.html',
+      },
+      exitCode: 0,
+      output: '',
+    }],
+  })] });
+
+  assert.deepEqual(Object.keys(analysis.filesTouched), ['report.html']);
+  assert.equal(analysis.filesTouched['end)'], undefined);
+  assert.equal(analysis.filesTouched['end.js)'], undefined);
+  assert.equal(analysis.filesTouched.result, undefined);
+  assert.equal(analysis.filesTouched.item, undefined);
+  assert.equal(analysis.filesTouched['thing,'], undefined);
+});
+
 test('claim matching extracts numeric test results', () => {
   const analysis = analyzeSession({ turns: [turn(1, {
     agentMessages: [
