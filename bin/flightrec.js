@@ -8,9 +8,14 @@ const { discoverSessions, defaultSessionsRoot } = require('../src/discover');
 const { parseSession } = require('../src/parser');
 const { analyzeSession } = require('../src/analyze');
 const { renderReport } = require('../src/render');
+const { version } = require('../package.json');
 
 async function main(argv = process.argv.slice(2), io = console, runtime = {}) {
   const command = argv[0];
+  if (command === '--version' || command === '-v') {
+    io.log(version);
+    return 0;
+  }
   if (!command || command === '--help' || command === '-h') {
     io.log(usage());
     return 0;
@@ -174,6 +179,7 @@ function formatTokens(tokens = 0) {
 function usage() {
   return [
     'Usage:',
+    '  flightrec --version',
     '  flightrec list [--dir <path>] [--all]',
     '  flightrec report [session-id|latest] [--dir <path>] [--open]',
   ].join('\n');

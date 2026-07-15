@@ -64,7 +64,7 @@ function renderClaims(claims) {
     <td class="mono">#${escapeHtml(claim.turnIndex)}</td><td class="claim-text">${escapeHtml(claim.sentence)}</td><td class="mono">${escapeHtml(formatClaimType(claim.claimType))}</td><td>${verdictBadge(claim.verdict)}</td>
     <td>${renderEvidence(claim.evidenceCommands)}</td>
   </tr>`).join('');
-  return `<section data-section="claims-vs-evidence"><div class="section-head"><div><div class="eyebrow">Trust, but verify</div><h2>Claims vs Evidence</h2></div><span class="muted mono">${claims.length} claims</span></div><div class="panel table-wrap">${rows ? `<table><thead><tr><th>Turn</th><th>Claim</th><th>Type</th><th>Verdict</th><th>Evidence</th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty">No completion claims detected.</div>'}</div></section>`;
+  return `<section data-section="claims-vs-evidence"><div class="section-head"><div><div class="eyebrow">Trust, but verify</div><h2>Claims vs Evidence</h2></div><span class="muted mono">${claims.length} claims</span></div><div class="panel table-wrap">${rows ? `<table><thead><tr><th>Turn</th><th>Claim</th><th>Type</th><th>Verdict</th><th>Evidence</th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty">No claims detected in this session.</div>'}</div></section>`;
 }
 
 function renderEvidence(commands) {
@@ -75,7 +75,7 @@ function renderEvidence(commands) {
 function renderTimeline(turns) {
   const cards = turns.map((turn, position) => {
     const index = Number.isInteger(turn?.index) ? turn.index : position + 1;
-    const user = renderMessages(turn?.userMessages, 'USER', 'message');
+    const user = renderMessages(turn?.userMessages, 'USER', 'message', stripLeadingInjectedBlocks);
     const agent = renderMessages(turn?.agentMessages, 'AGENT', 'message agent');
     const reasoning = Array.isArray(turn?.reasoning) && turn.reasoning.length
       ? `<details><summary>Reasoning summary</summary><div class="detail-body">${turn.reasoning.map((item) => `<div class="message">${escapeHtml(item)}</div>`).join('')}</div></details>` : '';
@@ -89,7 +89,7 @@ function renderTimeline(turns) {
 function renderFiles(filesTouched) {
   const entries = Object.entries(filesTouched).sort((left, right) => Number(right[1].churn) - Number(left[1].churn) || right[1].writes - left[1].writes || left[0].localeCompare(right[0]));
   const rows = entries.map(([filePath, file]) => `<tr><td><code>${escapeHtml(filePath)}</code></td><td class="mono">${escapeHtml(file.writes)}</td><td class="mono">${escapeHtml((file.turns || []).map((turn) => `#${turn}`).join(', '))}</td><td>${file.churn ? '<span class="badge churn">CHURN · REVIEW</span>' : '<span class="muted mono">stable</span>'}</td></tr>`).join('');
-  return `<section data-section="files-touched"><div class="section-head"><div><div class="eyebrow">Change surface</div><h2>Files Touched</h2></div><span class="muted mono">${entries.length} files</span></div><div class="panel table-wrap">${rows ? `<table><thead><tr><th>Path</th><th>Writes</th><th>Turns</th><th>Signal</th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty">No file writes detected.</div>'}</div></section>`;
+  return `<section data-section="files-touched"><div class="section-head"><div><div class="eyebrow">Change surface</div><h2>Files Touched</h2></div><span class="muted mono">${entries.length} files</span></div><div class="panel table-wrap">${rows ? `<table><thead><tr><th>Path</th><th>Writes</th><th>Turns</th><th>Signal</th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty">No files touched in this session.</div>'}</div></section>`;
 }
 
 function renderTokenBurn(tokens) {
@@ -127,9 +127,24 @@ function renderTokenChart(points) {
   return `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Per-turn and cumulative token usage"><line class="axis" x1="${left}" y1="${top + plotHeight}" x2="${width - 24}" y2="${top + plotHeight}"/><line class="grid" x1="${left}" y1="${top}" x2="${width - 24}" y2="${top}"/><text class="svg-label" x="8" y="${top + 4}">${escapeHtml(compactNumber(maxTurn))}</text>${bars}<polyline class="line" points="${polyline}"/>${dots}</svg>`;
 }
 
-function renderMessages(messages, role, className) {
+function renderMessages(messages, role, className, transform = String) {
   if (!Array.isArray(messages)) return '';
-  return messages.map((message) => `<div class="${className}"><span class="message-role">${role}</span>${escapeHtml(message)}</div>`).join('');
+  return messages
+    .map((message) => transform(message))
+    .filter((message) => String(message).trim())
+    .map((message) => `<div class="${className}"><span class="message-role">${role}</span>${escapeHtml(message)}</div>`)
+    .join('');
+}
+
+function stripLeadingInjectedBlocks(value) {
+  let text = String(value ?? '');
+  const leadingWrapper = /^\s*<([A-Za-z][\w:-]*)(?:\s[^>]*)?>[\s\S]*?<\/\1\s*>/;
+  let match = text.match(leadingWrapper);
+  while (match) {
+    text = text.slice(match[0].length);
+    match = text.match(leadingWrapper);
+  }
+  return text.trimStart();
 }
 
 function renderCommandLine(command) {

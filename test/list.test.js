@@ -9,6 +9,17 @@ const { formatSessionList, main } = require('../bin/flightrec');
 
 const fixtures = path.join(__dirname, 'fixtures');
 
+test('--version prints the package version without loading sessions', async () => {
+  const lines = [];
+  const code = await main(['--version'], {
+    log: (value) => lines.push(value),
+    error: (value) => lines.push(value),
+  });
+
+  assert.equal(code, 0);
+  assert.deepEqual(lines, ['0.9.0']);
+});
+
 test('formatSessionList renders all required columns and values', () => {
   const output = formatSessionList([{
     meta: {

@@ -54,3 +54,33 @@ test('renderReport truncates command output after thirty lines', () => {
   assert.doesNotMatch(html, /line 31/);
   assert.match(html, /Output truncated · 5 more lines/);
 });
+
+test('renderReport strips leading harness wrappers from user messages without mutating the session', () => {
+  const visibleMessage = '<recommended_plugins>internal plugin list</recommended_plugins>\n<environment_context>secret harness context</environment_context>\nPlease review src/render.js.';
+  const hiddenMessage = '<user_instructions>injected only</user_instructions>\n<environment_context>also injected</environment_context>';
+  const session = {
+    meta: {},
+    turns: [{ index: 1, userMessages: [visibleMessage, hiddenMessage], agentMessages: [] }],
+  };
+
+  const html = renderReport(session, { claims: [], filesTouched: {}, tokens: { perTurn: [] }, summary: { claims: {} } });
+
+  assert.match(html, /Please review src\/render\.js\./);
+  assert.doesNotMatch(html, /internal plugin list|secret harness context|injected only|also injected/);
+  assert.equal((html.match(/<span class="message-role">USER<\/span>/g) || []).length, 1);
+  assert.equal(session.turns[0].userMessages[0], visibleMessage);
+  assert.equal(session.turns[0].userMessages[1], hiddenMessage);
+});
+
+test('renderReport shows friendly empty states for claims and files', () => {
+  const html = renderReport({ meta: {}, turns: [] }, {
+    claims: [],
+    filesTouched: {},
+    tokens: { perTurn: [] },
+    summary: { claims: {} },
+  });
+
+  assert.match(html, /No claims detected in this session\./);
+  assert.match(html, /No files touched in this session\./);
+  assert.doesNotMatch(html, /<tbody><\/tbody>/);
+});

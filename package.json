@@ -1,7 +1,23 @@
 {
   "name": "flightrec",
-  "version": "0.1.0",
+  "version": "0.9.0",
   "description": "A flight recorder for Codex sessions",
+  "keywords": [
+    "codex",
+    "ai-agents",
+    "observability",
+    "code-review",
+    "flight-recorder"
+  ],
+  "author": "Alex Kosa (busminer)",
+  "license": "MIT",
+  "repository": "https://github.com/busminer/flightrec",
+  "files": [
+    "bin",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
   "type": "commonjs",
   "bin": {
     "flightrec": "bin/flightrec.js"
@@ -11,6 +27,5 @@
   },
   "scripts": {
     "test": "node --test"
-  },
-  "license": "MIT"
+  }
 }
