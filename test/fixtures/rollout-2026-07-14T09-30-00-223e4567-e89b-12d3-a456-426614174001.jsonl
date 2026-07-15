@@ -1,0 +1,9 @@
+{"timestamp":"2026-07-14T09:30:00.000Z","type":"session_meta","payload":{"id":"223e4567-e89b-12d3-a456-426614174001","timestamp":"2026-07-14T09:30:00.000Z","cwd":"/synthetic/malformed","originator":"Codex CLI","cli_version":"0.144.0","source":{"cli":true}}}
+{"timestamp":"2026-07-14T09:30:01.000Z","type":"turn_context","payload":{"model":"gpt-5-mini","cwd":"/synthetic/malformed"}}
+this is deliberately not json
+{"timestamp":"2026-07-14T09:30:02.000Z","type":"future_record","payload":{"value":42}}
+{"timestamp":"2026-07-14T09:30:03.000Z","type":"response_item","payload":{"type":"future_tool_surface","value":42}}
+{"timestamp":"2026-07-14T09:30:04.000Z","type":"event_msg","payload":{"type":"future_event","value":42}}
+{"timestamp":"2026-07-14T09:30:05.000Z","type":"response_item","payload":{"type":"message","role":"user","content":[{"type":"input_text","text":"Keep parsing."}]}}
+{"timestamp":"2026-07-14T09:30:06.000Z","type":"response_item","payload":{"type":"message","role":"assistant","content":[{"type":"output_text","text":"Parser survived."}]}}
+{"timestamp":"2026-07-14T09:31:00.000Z","type":"event_msg","payload":{"type":"token_count","info":{"last_token_usage":{"input_tokens":300,"output_tokens":100,"total_tokens":400},"total_token_usage":{"input_tokens":300,"output_tokens":100,"total_tokens":400}}}}

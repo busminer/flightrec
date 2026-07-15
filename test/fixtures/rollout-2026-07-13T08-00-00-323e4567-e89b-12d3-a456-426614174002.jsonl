@@ -1,0 +1,4 @@
+{"timestamp":"2026-07-13T08:00:00.000Z","type":"session_meta","payload":{"id":"323e4567-e89b-12d3-a456-426614174002","timestamp":"2026-07-13T08:00:00.000Z","cwd":"/synthetic/guardian","originator":"Codex Desktop","cli_version":"0.144.0","source":{"subagent":{"other":"guardian"}}}}
+{"timestamp":"2026-07-13T08:00:01.000Z","type":"turn_context","payload":{"model":"gpt-5-mini","cwd":"/synthetic/guardian"}}
+{"timestamp":"2026-07-13T08:00:02.000Z","type":"response_item","payload":{"type":"message","role":"user","content":[{"type":"input_text","text":"Check the parent task."}]}}
+{"timestamp":"2026-07-13T08:00:10.000Z","type":"response_item","payload":{"type":"message","role":"assistant","content":[{"type":"output_text","text":"Guardian check complete."}]}}
