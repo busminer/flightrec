@@ -84,6 +84,65 @@ test('analyzeSession extracts apply_patch paths and marks files with three write
   assert.equal(analysis.summary.commands, 4);
 });
 
+test('redirect detection ignores numeric comparisons embedded in scripts', () => {
+  const analysis = analyzeSession({ turns: [turn(1, {
+    commands: [{
+      name: 'shell',
+      arguments: { command: 'node -e "if (count > 0) run(); if (other >1) run();" > output.txt' },
+      exitCode: 0,
+      output: '',
+    }],
+  })] });
+
+  assert.deepEqual(Object.keys(analysis.filesTouched), ['output.txt']);
+  assert.equal(analysis.filesTouched['0'], undefined);
+  assert.equal(analysis.filesTouched['1'], undefined);
+});
+
+test('claim matching extracts numeric test results', () => {
+  const analysis = analyzeSession({ turns: [turn(1, {
+    agentMessages: [
+      '9/9 passed.',
+      '14 passed, 0 failed.',
+      '2 failing.',
+      'All 14 tests green.',
+    ],
+  })] });
+
+  assert.deepEqual(analysis.claims.map((claim) => claim.claimType), [
+    'test_results',
+    'test_results',
+    'test_results',
+    'test_results',
+  ]);
+});
+
+test('claim matching extracts Russian agent phrasing', () => {
+  const analysis = analyzeSession({ turns: [turn(1, {
+    agentMessages: [
+      'Готово. Сделано.',
+      'Исправлено. Починил.',
+      'Работает.',
+      'Реализован. Реализовано.',
+      'Тесты прошли. Тесты зелёные.',
+      'Успешно.',
+    ],
+  })] });
+
+  assert.deepEqual(analysis.claims.map((claim) => claim.claimType), [
+    'done',
+    'done',
+    'fixed',
+    'fixed',
+    'works',
+    'implemented',
+    'implemented',
+    'tests_pass',
+    'tests_pass',
+    'success',
+  ]);
+});
+
 test('claim matching uses phrases rather than random substrings', () => {
   const analysis = analyzeSession({ turns: [turn(1, {
     agentMessages: [

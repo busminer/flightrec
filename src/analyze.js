@@ -1,14 +1,58 @@
 'use strict';
 
 const CLAIM_PATTERNS = [
-  { type: 'tests_pass', pattern: /\b(?:all\s+)?tests?(?:\s+suites?)?\s+(?:all\s+)?(?:pass(?:ed|es|ing)?|are\s+passing)\b/i },
-  { type: 'verified', pattern: /\b(?:verified|verification\s+(?:passed|complete|succeeded))\b/i },
-  { type: 'works', pattern: /\b(?:(?:it|this|everything)\s+is\s+working|works(?:\s+correctly|\s+as\s+expected)?)\b/i },
-  { type: 'fixed', pattern: /\b(?:fixed|fix\s+(?:is\s+)?complete|issue\s+(?:is\s+)?resolved)\b/i },
-  { type: 'done', pattern: /\b(?:done|completed?|finished)\b/i },
-  { type: 'success', pattern: /(?:\b(?:successfully|successful|succeeded)\b|(?:^|\b(?:is|was|a)\s+)success[.!]?$)/i },
-  { type: 'all_green', pattern: /\ball\s+green\b/i },
-  { type: 'implemented', pattern: /\b(?:implemented|implementation\s+(?:is\s+)?complete)\b/i },
+  {
+    type: 'tests_pass',
+    patterns: [
+      /\b(?:all\s+)?tests?(?:\s+suites?)?\s+(?:all\s+)?(?:pass(?:ed|es|ing)?|are\s+passing)\b/i,
+      /(?:^|[^\p{L}\p{N}_])тесты\s+(?:прошли|зел[её]ные)(?=$|[^\p{L}\p{N}_])/iu,
+    ],
+  },
+  {
+    type: 'test_results',
+    patterns: [
+      /\b\d+\s*\/\s*\d+\s+(?:tests?\s+)?passed\b/i,
+      /\b\d+\s+(?:tests?\s+)?(?:passed|passing|failed|failing)\b/i,
+      /\ball\s+\d+\s+tests?\s+green\b/i,
+    ],
+  },
+  { type: 'verified', patterns: [/\b(?:verified|verification\s+(?:passed|complete|succeeded))\b/i] },
+  {
+    type: 'works',
+    patterns: [
+      /\b(?:(?:it|this|everything)\s+is\s+working|works(?:\s+correctly|\s+as\s+expected)?)\b/i,
+      /(?:^|[^\p{L}\p{N}_])работает(?=$|[^\p{L}\p{N}_])/iu,
+    ],
+  },
+  {
+    type: 'fixed',
+    patterns: [
+      /\b(?:fixed|fix\s+(?:is\s+)?complete|issue\s+(?:is\s+)?resolved)\b/i,
+      /(?:^|[^\p{L}\p{N}_])(?:исправлено|починил)(?=$|[^\p{L}\p{N}_])/iu,
+    ],
+  },
+  {
+    type: 'done',
+    patterns: [
+      /\b(?:done|completed?|finished)\b/i,
+      /(?:^|[^\p{L}\p{N}_])(?:готово|сделано)(?=$|[^\p{L}\p{N}_])/iu,
+    ],
+  },
+  {
+    type: 'success',
+    patterns: [
+      /(?:\b(?:successfully|successful|succeeded)\b|(?:^|\b(?:is|was|a)\s+)success[.!]?$)/i,
+      /(?:^|[^\p{L}\p{N}_])успешно(?=$|[^\p{L}\p{N}_])/iu,
+    ],
+  },
+  { type: 'all_green', patterns: [/\ball\s+green\b/i] },
+  {
+    type: 'implemented',
+    patterns: [
+      /\b(?:implemented|implementation\s+(?:is\s+)?complete)\b/i,
+      /(?:^|[^\p{L}\p{N}_])реализован(?:о|а|ы)?(?=$|[^\p{L}\p{N}_])/iu,
+    ],
+  },
 ];
 
 const TEST_COMMAND = /(?:^|[;&|]\s*|\s)(?:node\s+--test\b|npm\s+(?:run\s+)?test\b|pytest\b|cargo\s+test\b|go\s+test\b|(?:npx\s+)?jest\b|(?:npx\s+)?vitest\b)/i;
@@ -49,7 +93,7 @@ function extractClaims(turns) {
     for (const message of Array.isArray(turn.agentMessages) ? turn.agentMessages : []) {
       for (const sentence of splitSentences(message)) {
         for (const claimPattern of CLAIM_PATTERNS) {
-          if (!claimPattern.pattern.test(sentence)) continue;
+          if (!claimPattern.patterns.some((pattern) => pattern.test(sentence))) continue;
           const evidence = matchEvidence(turns, position);
           claims.push({
             turnIndex: turnIndex(turn, position),
@@ -160,7 +204,13 @@ function extractWrittenPaths(command) {
     paths.push(cleanPath(tokens.at(-1)));
   }
 
-  return paths.filter(Boolean);
+  return paths.filter(looksLikePath);
+}
+
+function looksLikePath(value) {
+  return /\p{L}/u.test(value)
+    || /[\\/]/.test(value)
+    || /\.[^.\s\\/]+$/.test(value);
 }
 
 function commandText(command) {
