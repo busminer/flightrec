@@ -60,7 +60,8 @@ const SMOKE_COMMAND = /(?:^|[;&|]\s*|\s)(?:npm\s+run\s+(?:check|verify|smoke)\b|
 
 function analyzeSession(session) {
   const turns = Array.isArray(session?.turns) ? session.turns : [];
-  const claims = extractClaims(turns);
+  const extractedClaims = extractClaims(turns);
+  const claims = extractedClaims.claims;
   const filesTouched = analyzeFilesTouched(turns);
   const tokens = analyzeTokens(turns);
   const commandCount = turns.reduce((sum, turn) => sum + commandsFor(turn).length, 0);
@@ -81,6 +82,7 @@ function analyzeSession(session) {
         partial: claims.filter((claim) => claim.verdict === 'partial').length,
         unsupported: claims.filter((claim) => claim.verdict === 'unsupported').length,
       },
+      claimsTotalBeforeDedupe: extractedClaims.totalBeforeDedupe,
       churnedFiles: Object.values(filesTouched).filter((file) => file.churn).length,
     },
   };
@@ -88,25 +90,35 @@ function analyzeSession(session) {
 
 function extractClaims(turns) {
   const claims = [];
+  let totalBeforeDedupe = 0;
   for (let position = 0; position < turns.length; position += 1) {
     const turn = turns[position];
+    const claimsByType = new Map();
     for (const message of Array.isArray(turn.agentMessages) ? turn.agentMessages : []) {
       for (const sentence of splitSentences(message)) {
         for (const claimPattern of CLAIM_PATTERNS) {
           if (!claimPattern.patterns.some((pattern) => pattern.test(sentence))) continue;
+          totalBeforeDedupe += 1;
+          const existing = claimsByType.get(claimPattern.type);
+          if (existing) {
+            existing.count += 1;
+            continue;
+          }
           const evidence = matchEvidence(turns, position);
-          claims.push({
+          claimsByType.set(claimPattern.type, {
             turnIndex: turnIndex(turn, position),
             sentence,
             claimType: claimPattern.type,
+            count: 1,
             verdict: evidence.verdict,
             evidenceCommands: evidence.commands,
           });
         }
       }
     }
+    claims.push(...claimsByType.values());
   }
-  return claims;
+  return { claims, totalBeforeDedupe };
 }
 
 function splitSentences(message) {
@@ -127,6 +139,10 @@ function matchEvidence(turns, claimPosition) {
   const verification = candidates.filter((command) => command.verificationType);
   const supported = verification.filter(commandSupportsClaim);
   if (supported.length > 0) return { verdict: 'supported', commands: supported };
+  const inferredFailures = verification.filter((command) => (
+    command.outcome === 'failure' && command.outcomeSource === 'output'
+  ));
+  if (inferredFailures.length > 0) return { verdict: 'unsupported', commands: inferredFailures };
   if (verification.length > 0) return { verdict: 'partial', commands: verification };
   if (candidates.length > 0) return { verdict: 'partial', commands: candidates };
   return { verdict: 'unsupported', commands: [] };
@@ -134,6 +150,7 @@ function matchEvidence(turns, claimPosition) {
 
 function commandEvidence(command, index) {
   const text = commandText(command);
+  const outcome = commandOutcome(command);
   return {
     turnIndex: index,
     name: command?.name || null,
@@ -141,11 +158,28 @@ function commandEvidence(command, index) {
     exitCode: Number.isInteger(command?.exitCode) ? command.exitCode : null,
     output: typeof command?.output === 'string' ? command.output : '',
     verificationType: TEST_COMMAND.test(text) ? 'test' : SMOKE_COMMAND.test(text) ? 'smoke' : null,
+    outcome: outcome.value,
+    outcomeSource: outcome.source,
   };
 }
 
 function commandSupportsClaim(command) {
-  return command.exitCode === 0 && !outputIndicatesFailure(command.output);
+  return command.outcome === 'success';
+}
+
+function commandOutcome(command) {
+  if (Number.isInteger(command?.exitCode)) {
+    return { value: command.exitCode === 0 && !outputIndicatesFailure(command.output) ? 'success' : 'failure', source: 'exitCode' };
+  }
+  if (outputIndicatesFailure(command?.output)) return { value: 'failure', source: 'output' };
+  if (outputIndicatesSuccess(command?.output)) return { value: 'success', source: 'output' };
+  return { value: 'unknown', source: null };
+}
+
+function outputIndicatesSuccess(output) {
+  const text = String(output || '');
+  return /(?:^|\b)(?:ok|passed|success(?:ful(?:ly)?)?|succeeded)(?:\b|$)/i.test(text)
+    || /\b(?:exit(?:ed)?(?:\s+with)?(?:\s+code)?|exit[_ -]?code)\s*[:=(]?\s*0\b/i.test(text);
 }
 
 function outputIndicatesFailure(output) {

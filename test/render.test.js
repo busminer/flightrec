@@ -84,3 +84,26 @@ test('renderReport shows friendly empty states for claims and files', () => {
   assert.match(html, /No files touched in this session\./);
   assert.doesNotMatch(html, /<tbody><\/tbody>/);
 });
+
+test('renderReport sorts claims by verdict and collapses rows after thirty', () => {
+  const claims = Array.from({ length: 35 }, (_, index) => ({
+    turnIndex: index + 1,
+    sentence: index === 0 ? 'SUPPORTED-LAST' : index === 1 ? 'UNSUPPORTED-FIRST' : `partial-${index + 1}`,
+    claimType: 'done',
+    count: index === 0 ? 4 : 1,
+    verdict: index === 0 ? 'supported' : index === 1 ? 'unsupported' : 'partial',
+    evidenceCommands: [],
+  }));
+  const html = renderReport({ meta: {}, turns: [] }, {
+    claims,
+    filesTouched: {},
+    tokens: { perTurn: [] },
+    summary: { claims: {}, claimsTotalBeforeDedupe: 38 },
+  });
+
+  assert.match(html, /35 claims \(38 before dedupe\)/);
+  assert.ok(html.indexOf('UNSUPPORTED-FIRST') < html.indexOf('partial-3'));
+  assert.ok(html.indexOf('partial-3') < html.indexOf('SUPPORTED-LAST'));
+  assert.match(html, /<summary>Show 5 more claims<\/summary>/);
+  assert.match(html, /4 occurrences/);
+});

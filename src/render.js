@@ -36,7 +36,7 @@ function renderReport(session, analysis) {
 <body>
 <main class="shell">
   ${renderHeader(meta, sessionId, summary, claimCounts, tokens)}
-  ${renderClaims(claims)}
+  ${renderClaims(claims, summary.claimsTotalBeforeDedupe)}
   ${renderTimeline(turns)}
   ${renderFiles(filesTouched)}
   ${renderTokenBurn(tokens)}
@@ -59,12 +59,25 @@ function renderHeader(meta, sessionId, summary, claimCounts, tokens) {
   </header>`;
 }
 
-function renderClaims(claims) {
+function renderClaims(claims, totalBeforeDedupe) {
+  const verdictPriority = { unsupported: 0, partial: 1, supported: 2 };
+  const sorted = claims.map((claim, index) => ({ claim, index })).sort((left, right) => (
+    (verdictPriority[left.claim.verdict] ?? 3) - (verdictPriority[right.claim.verdict] ?? 3)
+      || left.index - right.index
+  )).map(({ claim }) => claim);
+  const visible = sorted.slice(0, 30);
+  const hidden = sorted.slice(30);
+  const beforeDedupe = Number.isInteger(totalBeforeDedupe) ? totalBeforeDedupe : claims.length;
+  const content = visible.length ? `${claimsTable(visible)}${hidden.length ? `<details class="claim-overflow"><summary>Show ${hidden.length} more claims</summary>${claimsTable(hidden)}</details>` : ''}` : '<div class="empty">No claims detected in this session.</div>';
+  return `<section data-section="claims-vs-evidence"><div class="section-head"><div><div class="eyebrow">Trust, but verify</div><h2>Claims vs Evidence</h2></div><span class="muted mono">${claims.length} claims (${beforeDedupe} before dedupe)</span></div><div class="panel table-wrap">${content}</div></section>`;
+}
+
+function claimsTable(claims) {
   const rows = claims.map((claim) => `<tr>
-    <td class="mono">#${escapeHtml(claim.turnIndex)}</td><td class="claim-text">${escapeHtml(claim.sentence)}</td><td class="mono">${escapeHtml(formatClaimType(claim.claimType))}</td><td>${verdictBadge(claim.verdict)}</td>
+    <td class="mono">#${escapeHtml(claim.turnIndex)}</td><td class="claim-text">${escapeHtml(claim.sentence)}${claim.count > 1 ? `<div class="muted mono">${escapeHtml(claim.count)} occurrences</div>` : ''}</td><td class="mono">${escapeHtml(formatClaimType(claim.claimType))}</td><td>${verdictBadge(claim.verdict)}</td>
     <td>${renderEvidence(claim.evidenceCommands)}</td>
   </tr>`).join('');
-  return `<section data-section="claims-vs-evidence"><div class="section-head"><div><div class="eyebrow">Trust, but verify</div><h2>Claims vs Evidence</h2></div><span class="muted mono">${claims.length} claims</span></div><div class="panel table-wrap">${rows ? `<table><thead><tr><th>Turn</th><th>Claim</th><th>Type</th><th>Verdict</th><th>Evidence</th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty">No claims detected in this session.</div>'}</div></section>`;
+  return `<table><thead><tr><th>Turn</th><th>Claim</th><th>Type</th><th>Verdict</th><th>Evidence</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
 function renderEvidence(commands) {

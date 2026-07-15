@@ -33,6 +33,7 @@ test('analyzeSession matches claims to real verification evidence and token usag
   ]);
   assert.deepEqual(analysis.summary.claims, { supported: 3, partial: 3, unsupported: 1 });
   assert.equal(analysis.summary.failedCommands, 1);
+  assert.equal(analysis.summary.claimsTotalBeforeDedupe, 7);
   assert.deepEqual(analysis.filesTouched['src/parser.js'], { writes: 3, turns: [1, 2, 3], churn: true });
 });
 
@@ -136,12 +137,9 @@ test('claim matching extracts numeric test results', () => {
     ],
   })] });
 
-  assert.deepEqual(analysis.claims.map((claim) => claim.claimType), [
-    'test_results',
-    'test_results',
-    'test_results',
-    'test_results',
-  ]);
+  assert.deepEqual(analysis.claims.map((claim) => claim.claimType), ['test_results']);
+  assert.equal(analysis.claims[0].count, 4);
+  assert.equal(analysis.summary.claimsTotalBeforeDedupe, 4);
 });
 
 test('claim matching extracts Russian agent phrasing', () => {
@@ -158,16 +156,14 @@ test('claim matching extracts Russian agent phrasing', () => {
 
   assert.deepEqual(analysis.claims.map((claim) => claim.claimType), [
     'done',
-    'done',
-    'fixed',
     'fixed',
     'works',
     'implemented',
-    'implemented',
-    'tests_pass',
     'tests_pass',
     'success',
   ]);
+  assert.deepEqual(analysis.claims.map((claim) => claim.count), [2, 2, 1, 2, 2, 1]);
+  assert.equal(analysis.summary.claimsTotalBeforeDedupe, 10);
 });
 
 test('claim matching uses phrases rather than random substrings', () => {
@@ -183,6 +179,47 @@ test('claim matching uses phrases rather than random substrings', () => {
     'all_green',
     'tests_pass',
   ]);
+});
+
+test('desktop custom tool outputs infer supported, partial, and unsupported verdicts', async () => {
+  const session = await parseSession(fixture('desktop-custom-tool-session.jsonl'));
+  const analysis = analyzeSession(session);
+
+  assert.equal(session.turns[0].commands[0].type, 'custom_tool_call');
+  assert.equal(session.turns[0].commands[0].exitCode, null);
+  assert.equal(analysis.summary.claimsTotalBeforeDedupe, 8);
+  assert.equal(analysis.claims.length, 5);
+
+  const done = analysis.claims.find((claim) => claim.turnIndex === 1 && claim.claimType === 'done');
+  assert.equal(done.sentence, 'Done.');
+  assert.equal(done.count, 3);
+  assert.equal(done.verdict, 'supported');
+  assert.equal(done.evidenceCommands[0].outcome, 'success');
+  assert.equal(done.evidenceCommands[0].outcomeSource, 'output');
+
+  const verified = analysis.claims.find((claim) => claim.claimType === 'verified');
+  assert.equal(verified.verdict, 'partial');
+  assert.equal(verified.evidenceCommands.some((command) => command.command === 'Get-ChildItem test'), true);
+
+  const fixed = analysis.claims.find((claim) => claim.claimType === 'fixed');
+  assert.equal(fixed.verdict, 'unsupported');
+  assert.equal(fixed.evidenceCommands[0].outcome, 'failure');
+  assert.equal(fixed.evidenceCommands[0].outcomeSource, 'output');
+});
+
+test('exit-code text can support a test command when the parsed exit code is missing', () => {
+  const analysis = analyzeSession({ turns: [turn(1, {
+    commands: [{
+      name: 'custom_tool_call',
+      arguments: { command: 'cargo test' },
+      exitCode: null,
+      output: 'Finished test profile\nexit_code=0',
+    }],
+    agentMessages: ['Verified.'],
+  })] });
+
+  assert.equal(analysis.claims[0].verdict, 'supported');
+  assert.equal(analysis.claims[0].evidenceCommands[0].outcomeSource, 'output');
 });
 
 function turn(index, overrides = {}) {

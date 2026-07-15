@@ -1,0 +1,22 @@
+{"timestamp":"2026-07-15T15:00:00.000Z","type":"session_meta","payload":{"id":"desktop-custom-tool-synthetic","timestamp":"2026-07-15T15:00:00.000Z","cwd":"C:\\synthetic\\flightrec","originator":"Codex Desktop","cli_version":"0.144.0"}}
+{"timestamp":"2026-07-15T15:00:01.000Z","type":"turn_context","payload":{"model":"gpt-5.6","cwd":"C:\\synthetic\\flightrec"}}
+{"timestamp":"2026-07-15T15:00:02.000Z","type":"response_item","payload":{"type":"message","role":"user","content":[{"type":"input_text","text":"Run the synthetic desktop verification."}]}}
+{"timestamp":"2026-07-15T15:00:03.000Z","type":"response_item","payload":{"type":"custom_tool_call","name":"shell_command","call_id":"desktop-pass","input":{"command":"node --test test/synthetic.test.js"}}}
+{"timestamp":"2026-07-15T15:00:04.000Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"desktop-pass","output":"TAP version 13\n# tests 4\n# pass 4\nAll tests passed successfully"}}
+{"timestamp":"2026-07-15T15:00:05.000Z","type":"response_item","payload":{"type":"message","role":"assistant","content":[{"type":"output_text","text":"Done. Completed. Finished. All tests passed. Tests are passing. Successfully."}]}}
+{"timestamp":"2026-07-15T15:00:20.000Z","type":"turn_context","payload":{"model":"gpt-5.6","cwd":"C:\\synthetic\\flightrec"}}
+{"timestamp":"2026-07-15T15:00:21.000Z","type":"response_item","payload":{"type":"message","role":"user","content":[{"type":"input_text","text":"Synthetic spacer turn one."}]}}
+{"timestamp":"2026-07-15T15:00:22.000Z","type":"response_item","payload":{"type":"message","role":"assistant","content":[{"type":"output_text","text":"Continuing."}]}}
+{"timestamp":"2026-07-15T15:00:30.000Z","type":"turn_context","payload":{"model":"gpt-5.6","cwd":"C:\\synthetic\\flightrec"}}
+{"timestamp":"2026-07-15T15:00:31.000Z","type":"response_item","payload":{"type":"message","role":"user","content":[{"type":"input_text","text":"Synthetic spacer turn two."}]}}
+{"timestamp":"2026-07-15T15:00:32.000Z","type":"response_item","payload":{"type":"message","role":"assistant","content":[{"type":"output_text","text":"Continuing."}]}}
+{"timestamp":"2026-07-15T15:01:00.000Z","type":"turn_context","payload":{"model":"gpt-5.6","cwd":"C:\\synthetic\\flightrec"}}
+{"timestamp":"2026-07-15T15:01:01.000Z","type":"response_item","payload":{"type":"message","role":"user","content":[{"type":"input_text","text":"Inspect the synthetic directory."}]}}
+{"timestamp":"2026-07-15T15:01:02.000Z","type":"response_item","payload":{"type":"custom_tool_call","name":"shell_command","call_id":"desktop-ok","input":{"command":"Get-ChildItem test"}}}
+{"timestamp":"2026-07-15T15:01:03.000Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"desktop-ok","output":"OK"}}
+{"timestamp":"2026-07-15T15:01:04.000Z","type":"response_item","payload":{"type":"message","role":"assistant","content":[{"type":"output_text","text":"Verified."}]}}
+{"timestamp":"2026-07-15T15:02:00.000Z","type":"turn_context","payload":{"model":"gpt-5.6","cwd":"C:\\synthetic\\flightrec"}}
+{"timestamp":"2026-07-15T15:02:01.000Z","type":"response_item","payload":{"type":"message","role":"user","content":[{"type":"input_text","text":"Reproduce a synthetic failing verification."}]}}
+{"timestamp":"2026-07-15T15:02:02.000Z","type":"response_item","payload":{"type":"custom_tool_call","name":"shell_command","call_id":"desktop-fail","input":{"command":"node --test test/failing-synthetic.test.js"}}}
+{"timestamp":"2026-07-15T15:02:03.000Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"desktop-fail","output":"not ok 1 - synthetic failure\n1 test failed"}}
+{"timestamp":"2026-07-15T15:02:04.000Z","type":"response_item","payload":{"type":"message","role":"assistant","content":[{"type":"output_text","text":"The issue is fixed."}]}}
